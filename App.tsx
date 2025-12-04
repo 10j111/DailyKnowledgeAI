@@ -155,7 +155,7 @@ const App: React.FC = () => {
             <nav className="space-y-2 flex-1">
                 <NavButton 
                     id="dashboard" 
-                    label="Today's Feed" 
+                    label="Today's News" 
                     icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>}
                 />
                 <NavButton 
@@ -165,7 +165,7 @@ const App: React.FC = () => {
                 />
                 <NavButton 
                     id="weekly" 
-                    label="Weekly Synthesis" 
+                    label="Weekly Review" 
                     icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>}
                 />
             </nav>
@@ -180,7 +180,7 @@ const App: React.FC = () => {
                     <div className={`absolute inset-0 bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 w-[200%] transition-transform duration-[2s] linear ${isLoading ? 'animate-[spin_4s_linear_infinite] translate-x-0' : 'translate-x-full group-hover:translate-x-0'}`} />
                     <div className="absolute inset-[1px] bg-zinc-900 rounded-[10px] flex items-center justify-center">
                         <span className="text-xs font-bold text-white relative z-10 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-indigo-400 group-hover:to-purple-400 transition-all">
-                            {isLoading && view !== 'weekly' ? 'SYNCING...' : 'FETCH INTEL'}
+                            {isLoading && view !== 'weekly' ? 'SYNCING...' : 'GET NEWS'}
                         </span>
                     </div>
                 </button>

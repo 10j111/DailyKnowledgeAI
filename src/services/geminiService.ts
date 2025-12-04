@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Type } from "@google/genai";
 import { DailyInsight, RawFeedItem, Category, WeeklyReview, NewsItem, Language } from "../types";
 
@@ -7,35 +8,53 @@ const generateId = () => Math.random().toString(36).substring(2, 15) + Math.rand
 const apiKey = process.env.API_KEY;
 const ai = new GoogleGenAI({ apiKey: apiKey || '' });
 
-export const processDailyFeeds = async (rawItems: RawFeedItem[], lang: Language = 'zh-CN'): Promise<DailyInsight[]> => {
-  if (!apiKey) throw new Error("API Key is missing");
+/**
+ * Curates a batch of raw RSS items for a specific category.
+ * Requirements:
+ * - Select top 5 most impactful stories.
+ * - Deduplicate.
+ * - Summarize (2-3 lines).
+ * - Categorize.
+ * - STRICTLY preserve original URLs (no hallucination).
+ */
+export const curateCategoryByAI = async (rawItems: any[], category: Category): Promise<DailyInsight[]> => {
+  if (!apiKey) {
+    console.error("API Key missing");
+    return [];
+  }
 
-  // Construct a prompt context
-  const feedsText = rawItems.map((item, index) => 
-    `Item ${index + 1}:\nTitle: ${item.title}\nContent: ${item.content}\nSource: ${item.source}\nURL: ${item.url}`
-  ).join("\n\n");
+  // Map input to a simplified format with ID to ensure URL mapping
+  const inputMap = rawItems.map((item, index) => ({
+    id: index,
+    title: item.title,
+    source: item.source,
+    snippet: item.content.substring(0, 300) // Truncate to save tokens
+  }));
 
-  const langInstruction = lang === 'zh-CN' ? 'Please OUTPUT ALL TITLES AND SUMMARIES IN SIMPLIFIED CHINESE.' : 'Please OUTPUT ALL TITLES AND SUMMARIES IN ENGLISH.';
+  const feedsText = JSON.stringify(inputMap, null, 2);
 
   const prompt = `
-    You are an expert news editor. 
-    Analyze the following raw news items. 
-    Your tasks:
-    1. Select the most important items.
-    2. Classify them strictly into: World, Tech, AI, Business, Humanities, Ideas.
-    3. Generate a concise, high-value summary (max 2 sentences).
-    4. Assign a relevance score (1-100).
-    5. Return a structured JSON.
+    Role: Senior News Editor.
+    Task: Curate the "Daily Top 5" digest for category: "${category}".
     
-    IMPORTANT: ${langInstruction}
+    Input: A JSON list of raw RSS items with IDs.
+    
+    Instructions:
+    1. Analyze the items and select the top 5 most significant, unique stories.
+    2. Deduplicate: If multiple sources report the same event, pick the best one.
+    3. Summarize: Write a concise, 2-3 sentence summary (max 60 words) capturing the key insight.
+    4. Language: Simplified Chinese (简体中文).
+    5. CRITICAL: Return the "original_id" exactly as provided in the input. Do NOT invent URLs. I will map the URL back using this ID.
+    
+    Output Format: JSON Array.
   `;
 
   try {
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: [
-        { role: 'user', parts: [{ text: prompt }] },
-        { role: 'user', parts: [{ text: feedsText }] }
+          { role: 'user', parts: [{ text: prompt }] },
+          { role: 'user', parts: [{ text: feedsText }] }
       ],
       config: {
         responseMimeType: "application/json",
@@ -44,13 +63,12 @@ export const processDailyFeeds = async (rawItems: RawFeedItem[], lang: Language 
           items: {
             type: Type.OBJECT,
             properties: {
-              originalIndex: { type: Type.INTEGER },
-              title: { type: Type.STRING },
+              original_id: { type: Type.INTEGER, description: "The exact ID from the input JSON" },
+              title: { type: Type.STRING, description: "Translated title if needed" },
               summary: { type: Type.STRING },
-              category: { type: Type.STRING, enum: Object.values(Category) },
-              score: { type: Type.INTEGER }
+              score: { type: Type.INTEGER, description: "Importance score 0-100" }
             },
-            required: ["originalIndex", "title", "summary", "category", "score"]
+            required: ["original_id", "title", "summary", "score"]
           }
         }
       }
@@ -58,26 +76,104 @@ export const processDailyFeeds = async (rawItems: RawFeedItem[], lang: Language 
 
     const data = JSON.parse(response.text || "[]");
     
-    // Map back to DailyInsight objects
-    return data.map((item: any) => {
-      const original = rawItems[item.originalIndex - 1];
-      return {
+    // Map back to original objects to ensure valid URLs
+    const curated: DailyInsight[] = [];
+    
+    for (const item of data) {
+      const original = rawItems[item.original_id];
+      
+      // If AI hallucinates an ID that doesn't exist, skip it
+      if (!original) continue;
+
+      curated.push({
         id: generateId(),
         date: new Date().toISOString().split('T')[0],
         title: item.title,
         summary: item.summary,
-        category: item.category as Category,
-        url: original?.url || '#',
-        source_name: original?.source || 'Unknown',
+        category: category,
+        url: original.url, // STRICT USE of original URL
+        source_name: original.source,
         score: item.score,
         created_at: Date.now()
-      };
-    });
+      });
+    }
+
+    return curated;
 
   } catch (error) {
-    console.error("Gemini Processing Error:", error);
-    throw error;
+    console.error(`Gemini Error for ${category}:`, error);
+    return [];
   }
+};
+
+// --- Legacy / Client-Side Polyfills below ---
+
+export const processDailyFeeds = async (rawItems: RawFeedItem[], lang: Language = 'zh-CN'): Promise<DailyInsight[]> => {
+    // This method simulates the "Daily Fetch" button action in the browser preview.
+    // It takes the Mock Data, processes it via Gemini (real API call), and returns insights.
+    
+    if (!apiKey) throw new Error("API Key is missing");
+
+    const prompt = `
+      You are an expert news aggregator.
+      Process these raw simulated news items.
+      
+      Tasks:
+      1. Analyze the items.
+      2. Categorize them into: World, Tech, AI, Business, Humanities, Ideas.
+      3. Summarize them (2 sentences, in ${lang === 'zh-CN' ? 'Simplified Chinese' : 'English'}).
+      4. Assign a score (0-100).
+      
+      Input Data:
+      ${JSON.stringify(rawItems)}
+    `;
+
+    try {
+      const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                originalIndex: { type: Type.INTEGER },
+                title: { type: Type.STRING },
+                summary: { type: Type.STRING },
+                category: { type: Type.STRING, enum: Object.values(Category) },
+                score: { type: Type.INTEGER }
+              },
+              required: ["originalIndex", "title", "summary", "category", "score"]
+            }
+          }
+        }
+      });
+
+      const data = JSON.parse(response.text || "[]");
+      
+      // Map back to inputs
+      return data.map((item: any, idx: number) => {
+        // Fallback mapping if index is fuzzy, otherwise try to match original
+        const original = rawItems[item.originalIndex] || rawItems[idx]; 
+        return {
+          id: generateId(),
+          date: new Date().toISOString().split('T')[0],
+          title: item.title,
+          summary: item.summary,
+          category: item.category as Category,
+          url: original?.url || '#',
+          source_name: original?.source || 'Simulation',
+          score: item.score,
+          created_at: Date.now()
+        };
+      });
+
+    } catch (error) {
+      console.error("Client Simulation Error:", error);
+      throw error;
+    }
 };
 
 export const generateWeeklyReview = async (bookmarks: NewsItem[], lang: Language = 'zh-CN'): Promise<WeeklyReview> => {

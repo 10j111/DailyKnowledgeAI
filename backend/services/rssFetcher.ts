@@ -1,49 +1,100 @@
 
 import Parser from 'rss-parser';
-import { DatabaseManager } from '../db'; // Assuming db.ts exports this
+import fs from 'fs';
+import path from 'path';
+import { RSS_FEEDS } from '../config/feeds';
+import { curateCategoryByAI } from '../../src/services/geminiService';
+import { DailyInsight } from '../../src/types';
 
-// 1. Define Sources (In a real app, these come from the 'sources' table)
-const DEFAULT_SOURCES = [
-  { name: 'BBC World', url: 'http://feeds.bbci.co.uk/news/world/rss.xml', category: 'World' },
-  { name: 'TechCrunch', url: 'https://techcrunch.com/feed/', category: 'Tech' },
-  { name: 'The Verge', url: 'https://www.theverge.com/rss/index.xml', category: 'Tech' },
-  { name: 'Hacker News', url: 'https://hnrss.org/frontpage', category: 'Tech' }
-];
+const parser = new Parser({
+  timeout: 5000, // 5s timeout per feed
+  headers: { 'User-Agent': 'DailyKnowledgeBot/1.0' }
+});
 
-const parser = new Parser();
-// const db = new DatabaseManager(); // In real app, import singleton instance
-
-export const runRssFetcher = async () => {
-  console.log('Starting RSS Fetcher...');
+export const runDailyFetch = async (): Promise<DailyInsight[]> => {
+  console.log(`[${new Date().toISOString()}] Starting Daily RSS Fetch Task...`);
   
-  let newArticlesCount = 0;
+  // Directory for daily JSON files - MOVED INSIDE FUNCTION
+  const DATA_DIR = path.join(process.cwd(), 'data');
+  if (!fs.existsSync(DATA_DIR)) {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+  }
+  
+  const allInsights: DailyInsight[] = [];
+  const errors: string[] = [];
 
-  for (const source of DEFAULT_SOURCES) {
-    try {
-      console.log(`Fetching ${source.name}...`);
-      const feed = await parser.parseURL(source.url);
-      
-      for (const item of feed.items) {
-        // In real app: db.insertRawArticle(...)
-        // We simulate the DB logic here:
+  // 1. Iterate through each category defined in JSON config
+  for (const group of RSS_FEEDS) {
+    const rawCandidates: any[] = [];
+    console.log(`Processing Category: ${group.category}...`);
+
+    // 2. Fetch Feeds for this category
+    for (const feed of group.feeds) {
+      try {
+        console.log(`  Fetching: ${feed.source} (${feed.rss_url})`);
+        const feedResult = await parser.parseURL(feed.rss_url);
         
-        // const exists = db.checkArticleExists(item.link);
-        // if (!exists) {
-        //   db.insertRawArticle({
-        //     source_id: 1, // Look up actual ID
-        //     title: item.title,
-        //     description: item.contentSnippet || item.content,
-        //     url: item.link,
-        //     published_at: new Date(item.pubDate || Date.now()).getTime()
-        //   });
-        //   newArticlesCount++;
-        // }
+        // Requirement: Take max 3 items per source
+        const latestItems = feedResult.items.slice(0, 3).map(item => ({
+          title: item.title?.trim() || 'No Title',
+          content: (item.contentSnippet || item.content || '').trim(),
+          url: item.link || '',
+          source: feed.source,
+          pubDate: item.pubDate
+        }));
+
+        // Basic validation
+        const validItems = latestItems.filter(i => i.url && i.url.startsWith('http'));
+        rawCandidates.push(...validItems);
+
+      } catch (err: any) {
+        // Requirement: Log error, do not generate fake content
+        const errorMsg = `[${group.category}] Failed to fetch ${feed.source}: ${err.message}`;
+        console.error(errorMsg);
+        errors.push(errorMsg);
       }
-    } catch (error) {
-      console.error(`Error fetching ${source.name}:`, error);
+    }
+
+    if (rawCandidates.length === 0) {
+      console.warn(`  No valid articles found for ${group.category}. Skipping.`);
+      continue;
+    }
+
+    // Deduplicate by title locally before sending to AI to save tokens
+    const uniqueCandidates = Array.from(new Map(rawCandidates.map(item => [item.title, item])).values());
+
+    // 3. Send to AI for Curation 
+    // Requirement: Generate up to 5 digest articles per category
+    try {
+      console.log(`  Sending ${uniqueCandidates.length} items to AI for curation...`);
+      const curatedInsights = await curateCategoryByAI(uniqueCandidates, group.category);
+      allInsights.push(...curatedInsights);
+      console.log(`  > AI selected ${curatedInsights.length} highlights.`);
+    } catch (err) {
+      console.error(`  AI Curation failed for ${group.category}:`, err);
+      errors.push(`AI Error ${group.category}: ${err}`);
     }
   }
 
-  console.log(`RSS Fetch complete. ${newArticlesCount} new articles found.`);
-  return newArticlesCount;
+  // 4. Save to JSON File (daily_summaries_YYYY-MM-DD.json)
+  const dateStr = new Date().toISOString().split('T')[0];
+  const filename = `daily_summaries_${dateStr}.json`;
+  const filePath = path.join(DATA_DIR, filename);
+
+  const fileOutput = {
+    date: dateStr,
+    generated_at: new Date().toISOString(),
+    total_count: allInsights.length,
+    errors: errors,
+    data: allInsights
+  };
+
+  try {
+    fs.writeFileSync(filePath, JSON.stringify(fileOutput, null, 2));
+    console.log(`[SUCCESS] Saved ${allInsights.length} insights to ${filePath}`);
+  } catch (e) {
+    console.error("Failed to write JSON file:", e);
+  }
+
+  return allInsights;
 };
