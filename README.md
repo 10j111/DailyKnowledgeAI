@@ -1,26 +1,20 @@
-# DailyKnowledgeAI
+<div align="center">
+<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+</div>
 
-**每日知识助理 | AI 驱动的个人资讯管理工具**
+# Run and deploy your AI Studio app
 
-DailyKnowledgeAI 是一个 AI 驱动的桌面助手，帮助用户每天获取世界资讯、筛选精华、收藏分类、每周复盘，并激发写作与思考。它将信息输入转化为个人知识资产，让你轻松保持行业敏感度和知识沉淀。
+This contains everything you need to run your app locally.
 
-## 功能亮点
+View your app in AI Studio: https://ai.studio/apps/drive/1NEClIQo-qCS4lAp6iSuZXTrzI4ZqZ1NP
 
-- **每日精华**：从 RSS、新闻 API 或聚合平台抓取资讯，每天生成 6 条 AI 摘要，3 分钟即可快速阅读。
-- **收藏与分类**：自定义标签和分类，将感兴趣的文章整理成个人知识库。
-- **每周复盘**：自动总结收藏内容，生成“本周精选回顾”，引导用户写作和输出思考。
-- **桌面提醒**：每日推送精选资讯，保持持续关注和信息敏感度。
+## Run Locally
 
-## 技术栈
+**Prerequisites:**  Node.js
 
-- **资讯获取**：RSS、新闻 API、可选 Web Scraper
-- **数据处理**：AI 摘要生成、去重、标签匹配、精华筛选
-- **前端展示**：桌面通知、收藏与分类界面
-- **复盘输出**：每周总结、写作启发提示
 
-## 使用场景
-
-- 保持每日世界观和行业敏感度
-- 建立个人知识体系
-- 激发写作灵感，转化输入为输出
-
+1. Install dependencies:
+   `npm install`
+2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
+3. Run the app:
+   `npm run dev`

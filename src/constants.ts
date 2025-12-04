@@ -1,49 +1,55 @@
 import { Category, RawFeedItem } from './types';
 
-// Updated for "Airy / Apple Music" Aesthetic (Light Mode)
-// Refined Palette: Soft Pastels with Gradients
-export const CATEGORY_THEME: Record<Category, { bgGradient: string, accent: string, text: string, decoration: string, badge: string }> = {
-  [Category.World]: {
-    bgGradient: 'bg-gradient-to-br from-[#E0F2FE] to-[#F0F9FF]', // Sky Blue -> Pale Blue
-    accent: 'bg-blue-500',
-    text: 'text-blue-900',
-    badge: 'text-blue-700 bg-blue-100/50',
-    decoration: 'rounded-full'
-  },
+// Updated for "Bento Dark" Aesthetic (Reference Image)
+// Solid matte colors. Some dark with white text, some pastel with black text.
+export const CATEGORY_THEME: Record<Category, { bg: string, text: string, accent: string, badge: string, iconColor: string }> = {
+  // Style: The "Lavender" card in the image
   [Category.Tech]: {
-    bgGradient: 'bg-gradient-to-br from-[#D1FAE5] to-[#ECFDF5]', // Mint -> Emerald
-    accent: 'bg-emerald-500',
-    text: 'text-emerald-900',
-    badge: 'text-emerald-700 bg-emerald-100/50',
-    decoration: 'rounded-tl-3xl'
+    bg: 'bg-[#C4B5FD]', // Lavender
+    text: 'text-[#111111]',
+    accent: 'bg-white/40',
+    badge: 'bg-black/10 text-black border-black/5',
+    iconColor: 'text-black'
   },
+  // Style: The "Yellow" card in the image (or similar vibrant accent)
   [Category.AI]: {
-    bgGradient: 'bg-gradient-to-br from-[#F3E8FF] to-[#FAF5FF]', // Lavender -> Purple
-    accent: 'bg-purple-500',
-    text: 'text-purple-900',
-    badge: 'text-purple-700 bg-purple-100/50',
-    decoration: 'rounded-br-3xl'
+    bg: 'bg-[#FDE047]', // Yellow
+    text: 'text-[#111111]',
+    accent: 'bg-black/10',
+    badge: 'bg-black/10 text-black border-black/5',
+    iconColor: 'text-black'
   },
+  // Style: Dark Grey Card (Standard Bento Block)
+  [Category.World]: {
+    bg: 'bg-[#27272A]', // Zinc 800
+    text: 'text-white',
+    accent: 'bg-white/10',
+    badge: 'bg-white/10 text-zinc-300 border-white/5',
+    iconColor: 'text-zinc-400'
+  },
+  // Style: The "Earthy/Brown" card in the image
   [Category.Business]: {
-    bgGradient: 'bg-gradient-to-br from-[#FEF3C7] to-[#FFFBEB]', // Soft Amber -> Cream
-    accent: 'bg-amber-500',
-    text: 'text-amber-900',
-    badge: 'text-amber-700 bg-amber-100/50',
-    decoration: 'rounded-tr-3xl'
+    bg: 'bg-[#A67C52]', // Earthy Brown
+    text: 'text-white',
+    accent: 'bg-black/20',
+    badge: 'bg-black/20 text-white/90 border-white/10',
+    iconColor: 'text-white'
   },
+  // Style: Soft White/Grey card
   [Category.Humanities]: {
-    bgGradient: 'bg-gradient-to-br from-[#FFE4E6] to-[#FFF1F2]', // Rose -> Pink
-    accent: 'bg-rose-500',
-    text: 'text-rose-900',
-    badge: 'text-rose-700 bg-rose-100/50',
-    decoration: 'rounded-bl-3xl'
+    bg: 'bg-[#F4F4F5]', // Zinc 100
+    text: 'text-[#111111]',
+    accent: 'bg-black/5',
+    badge: 'bg-black/5 text-zinc-600 border-black/5',
+    iconColor: 'text-zinc-500'
   },
+  // Style: Dark Blue/Black card
   [Category.Ideas]: {
-    bgGradient: 'bg-gradient-to-br from-[#E0E7FF] to-[#EEF2FF]', // Soft Indigo -> Periwinkle (Replaces Grey)
-    accent: 'bg-indigo-500',
-    text: 'text-indigo-900',
-    badge: 'text-indigo-700 bg-indigo-100/50',
-    decoration: 'rounded-full'
+    bg: 'bg-[#18181B]', // Zinc 900
+    text: 'text-white',
+    accent: 'bg-white/10',
+    badge: 'bg-white/10 text-zinc-400 border-white/5',
+    iconColor: 'text-zinc-400'
   },
 };
 

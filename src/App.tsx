@@ -119,30 +119,30 @@ const AppContent: React.FC = () => {
   // --- Reader View Component ---
   if (readingItem) {
       return (
-          <div className="fixed inset-0 z-50 bg-[#F7F7F9] flex flex-col animate-fade-in-up overflow-y-auto">
+          <div className="fixed inset-0 z-50 bg-[#121212] flex flex-col animate-fade-in-up overflow-y-auto">
               <div className="max-w-3xl mx-auto w-full p-8 md:p-16">
-                  <button onClick={() => setReadingItem(null)} className="mb-8 flex items-center text-zinc-500 hover:text-black transition-colors font-medium">
+                  <button onClick={() => setReadingItem(null)} className="mb-8 flex items-center text-zinc-400 hover:text-white transition-colors font-medium">
                       <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
                       {t('card.cancel')}
                   </button>
-                  <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-6 ${CATEGORY_THEME[readingItem.category].bgGradient} ${CATEGORY_THEME[readingItem.category].text} border border-black/5`}>
+                  <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-6 bg-white/10 text-zinc-300 border border-white/5`}>
                       {t(`cat.${readingItem.category}`)}
                   </span>
-                  <h1 className="text-4xl md:text-5xl font-serif font-bold text-[#111111] mb-8 leading-tight tracking-tight">{readingItem.title}</h1>
-                  <div className="flex items-center justify-between border-b border-zinc-200 pb-8 mb-8">
-                      <div className="text-sm text-zinc-600 font-medium">
+                  <h1 className="text-4xl md:text-5xl font-bold text-white mb-8 leading-tight tracking-tight">{readingItem.title}</h1>
+                  <div className="flex items-center justify-between border-b border-zinc-800 pb-8 mb-8">
+                      <div className="text-sm text-zinc-500 font-medium">
                           {readingItem.source_name} • {new Date(readingItem.created_at).toLocaleDateString()}
                       </div>
                       <button onClick={() => toggleBookmark(readingItem.id)}>
-                         <svg className={`w-6 h-6 ${readingItem.isBookmarked ? 'text-yellow-500 fill-current' : 'text-zinc-300 hover:text-zinc-500'}`} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} fill="none"><path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" /></svg>
+                         <svg className={`w-6 h-6 ${readingItem.isBookmarked ? 'text-yellow-500 fill-current' : 'text-zinc-500 hover:text-white'}`} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} fill="none"><path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" /></svg>
                       </button>
                   </div>
-                  <article className="prose prose-lg prose-zinc max-w-none">
-                      <p className="text-xl leading-relaxed text-zinc-800 font-serif">{readingItem.summary}</p>
-                      <div className="mt-12 p-6 bg-white rounded-2xl border border-zinc-200 shadow-sm">
-                          <h4 className="font-bold text-zinc-900 mb-2 text-sm uppercase tracking-wide">AI Insight</h4>
-                          <p className="text-zinc-600">This content was summarized by Gemini 2.5. The original article explores this topic in greater depth.</p>
-                          <a href={readingItem.url} target="_blank" rel="noreferrer" className="inline-block mt-4 text-indigo-600 font-medium hover:underline">Read Full Article &rarr;</a>
+                  <article className="prose prose-lg prose-invert max-w-none">
+                      <p className="text-xl leading-relaxed text-zinc-300 font-serif">{readingItem.summary}</p>
+                      <div className="mt-12 p-8 bg-[#27272A] rounded-[32px] border border-white/5">
+                          <h4 className="font-bold text-white mb-2 text-sm uppercase tracking-wide">AI Insight</h4>
+                          <p className="text-zinc-400">This content was summarized by Gemini 2.5. The original article explores this topic in greater depth.</p>
+                          <a href={readingItem.url} target="_blank" rel="noreferrer" className="inline-block mt-4 text-[#C4B5FD] font-medium hover:underline">Read Full Article &rarr;</a>
                       </div>
                   </article>
               </div>
@@ -150,9 +150,9 @@ const AppContent: React.FC = () => {
       )
   }
 
-  // --- Main App Layout ---
+  // --- Main App Layout (Split View) ---
   return (
-    <div className="flex flex-col h-screen font-sans bg-[#F7F7F9] text-[#111111] selection:bg-indigo-100">
+    <div className="flex h-screen w-screen overflow-hidden bg-[#121212] text-white">
       
       {notificationVisible && (
           <FloatingNotification 
@@ -162,84 +162,102 @@ const AppContent: React.FC = () => {
           />
       )}
 
-      {/* Top Header */}
-      <header className="px-8 pt-12 pb-6 flex justify-between items-end max-w-7xl mx-auto w-full z-10 relative">
-         <div>
-             <h1 className="text-4xl font-bold tracking-tight text-[#111111] mb-1">{t('app.title')}{t('app.subtitle')}</h1>
-             <p className="text-zinc-500 text-sm font-medium">{new Date().toLocaleDateString(language, { weekday: 'long', month: 'long', day: 'numeric' })}</p>
-         </div>
-         <div className="flex items-center space-x-4">
+      {/* LEFT COLUMN: Hero & Navigation (Fixed) */}
+      <div className="w-[420px] h-full flex flex-col p-10 relative z-10 border-r border-white/5 bg-[#121212]">
+          
+          {/* Header */}
+          <div className="mb-12">
+              <div className="flex items-center space-x-2 mb-4">
+                 <div className="w-3 h-3 rounded-full bg-[#C4B5FD]" />
+                 <span className="text-xs font-bold tracking-[0.2em] text-zinc-500 uppercase">{t('app.system_status')}</span>
+              </div>
+              <h1 className="text-6xl font-bold tracking-tighter leading-none mb-4">{t('app.title')}<br/><span className="text-zinc-600">{t('app.subtitle')}</span></h1>
+              <p className="text-xl text-zinc-400 font-medium">{new Date().toLocaleDateString(language, { weekday: 'long', month: 'long', day: 'numeric' })}</p>
+          </div>
+
+          {/* Navigation Pills */}
+          <nav className="space-y-4 flex-1">
+             {[
+               { id: 'dashboard', label: t('nav.dashboard') },
+               { id: 'bookmarks', label: t('nav.bookmarks') },
+               { id: 'weekly', label: t('nav.weekly') }
+             ].map((navItem) => (
+                <button 
+                  key={navItem.id}
+                  onClick={() => setView(navItem.id as ViewState)}
+                  className={`
+                    w-full text-left px-6 py-4 rounded-full text-lg font-bold transition-all duration-300
+                    ${view === navItem.id 
+                      ? 'bg-white text-black' 
+                      : 'bg-[#27272A] text-zinc-400 hover:bg-[#323235] hover:text-white'}
+                  `}
+                >
+                  {navItem.label}
+                </button>
+             ))}
+          </nav>
+
+          {/* Footer Actions */}
+          <div className="mt-10 space-y-4">
              <button 
                 onClick={handleFetchDaily} 
-                className="w-10 h-10 rounded-full bg-white border border-zinc-200 flex items-center justify-center text-zinc-500 hover:text-black hover:border-zinc-400 transition-all shadow-sm"
-                title={t('btn.fetch')}
+                disabled={isLoading}
+                className="w-full flex items-center justify-between px-6 py-4 rounded-full bg-[#C4B5FD] text-black hover:bg-[#B09EFC] hover:scale-[1.02] transition-all duration-300 font-bold"
              >
+                 <span>{isLoading ? t('btn.syncing') : t('btn.fetch')}</span>
                  <svg className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
              </button>
+             
              <button 
                 onClick={() => setLanguage(language === 'en' ? 'zh-CN' : 'en')}
-                className="text-sm font-bold text-zinc-500 hover:text-black transition-colors border border-transparent hover:border-zinc-200 px-3 py-1 rounded-full"
+                className="w-full text-center py-2 text-xs font-bold text-zinc-600 hover:text-white uppercase tracking-widest"
              >
-                 {language === 'en' ? 'EN' : '中'}
+                 Switch Language: {language === 'en' ? '中文' : 'English'}
              </button>
-         </div>
-      </header>
+          </div>
+      </div>
 
-      {/* Scrollable Content */}
-      <main className="flex-1 overflow-y-auto pb-32">
-        <div className="max-w-7xl mx-auto px-8">
-            
-            {/* View Title */}
-            <div className="mb-8">
-                <h2 className="text-2xl font-bold text-[#111111]">
-                    {view === 'dashboard' && t('header.dashboard.title')}
-                    {view === 'bookmarks' && t('header.bookmarks.title')}
-                    {view === 'weekly' && t('header.weekly.title')}
-                </h2>
-            </div>
+      {/* RIGHT COLUMN: Content (Scrollable) */}
+      <div className="flex-1 h-full overflow-y-auto p-10 scroll-smooth">
+          <div className="max-w-4xl mx-auto">
+            {/* View Title Overlay */}
+            <h2 className="text-[100px] font-bold text-white/5 absolute top-10 right-10 pointer-events-none select-none tracking-tighter leading-none">
+                {view === 'dashboard' && 'DAILY'}
+                {view === 'bookmarks' && 'SAVED'}
+                {view === 'weekly' && 'WEEKLY'}
+            </h2>
 
             {view === 'dashboard' && (
-                <div className="space-y-12 animate-fade-in">
-                     {articles.length === 0 && !isLoading && (
+                <div className="animate-fade-in-up">
+                    {articles.length === 0 && !isLoading && (
                         <div className="py-24 text-center">
                             <p className="text-zinc-500 text-lg mb-4">{t('empty.dashboard.title')}</p>
-                            <button onClick={handleFetchDaily} className="bg-black text-white px-6 py-2 rounded-full font-bold text-sm shadow-lg hover:scale-105 transition-transform">{t('empty.dashboard_box.btn')}</button>
                         </div>
-                     )}
-
-                     {Object.values(Category).map((category) => {
-                         const categoryItems = categorizedArticles[category];
-                         if (categoryItems.length === 0) return null;
-                         
-                         return (
-                            <section key={category} className="mb-12">
-                                <div className="flex items-center space-x-3 mb-6">
-                                    <div className={`w-2 h-2 rounded-full ${CATEGORY_THEME[category as Category].accent}`} />
-                                    <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-500">
-                                        {t(`cat.${category}`)}
-                                    </h3>
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                    {categoryItems.map(item => (
-                                        <NewsCard 
-                                            key={item.id} 
-                                            item={item} 
-                                            onBookmark={toggleBookmark}
-                                            onUpdateNote={updateNote}
-                                            onClick={() => setReadingItem(item)}
-                                        />
-                                    ))}
-                                </div>
-                            </section>
-                         );
-                     })}
+                    )}
+                    
+                    {/* Masonry-style Grid */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        {Object.values(Category).map((category) => {
+                             const categoryItems = categorizedArticles[category];
+                             if (categoryItems.length === 0) return null;
+                             return categoryItems.map(item => (
+                                <NewsCard 
+                                    key={item.id} 
+                                    item={item} 
+                                    onBookmark={toggleBookmark}
+                                    onUpdateNote={updateNote}
+                                    onClick={() => setReadingItem(item)}
+                                />
+                             ));
+                        })}
+                    </div>
                 </div>
             )}
 
             {view === 'bookmarks' && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fade-in-up">
                     {articles.length === 0 ? (
-                         <div className="col-span-full py-32 text-center text-zinc-400">{t('empty.bookmarks')}</div>
+                         <div className="col-span-full py-32 text-center text-zinc-500 text-xl font-bold">{t('empty.bookmarks')}</div>
                     ) : (
                         articles.map(item => (
                             <NewsCard 
@@ -261,35 +279,9 @@ const AppContent: React.FC = () => {
                     onGenerate={handleGenerateReview} 
                 />
             )}
-        </div>
-      </main>
+          </div>
+      </div>
 
-      {/* Bottom Navigation (Mobile/Modern Desktop style) */}
-      <nav className="fixed bottom-8 left-1/2 -translate-x-1/2 z-40 bg-white/90 backdrop-blur-xl border border-white/50 shadow-[0_8px_30px_rgba(0,0,0,0.12)] rounded-full px-8 py-4 flex space-x-10 items-center">
-          <button 
-             onClick={() => setView('dashboard')}
-             className={`flex flex-col items-center space-y-1.5 transition-colors ${view === 'dashboard' ? 'text-black' : 'text-zinc-400 hover:text-zinc-600'}`}
-          >
-              <svg className="w-6 h-6" fill={view === 'dashboard' ? "currentColor" : "none"} stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" /></svg>
-              <span className="text-[10px] font-bold uppercase tracking-wider">{t('nav.dashboard')}</span>
-          </button>
-          <div className="w-px h-8 bg-zinc-200" />
-          <button 
-             onClick={() => setView('bookmarks')}
-             className={`flex flex-col items-center space-y-1.5 transition-colors ${view === 'bookmarks' ? 'text-black' : 'text-zinc-400 hover:text-zinc-600'}`}
-          >
-              <svg className="w-6 h-6" fill={view === 'bookmarks' ? "currentColor" : "none"} stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" /></svg>
-              <span className="text-[10px] font-bold uppercase tracking-wider">{t('nav.bookmarks')}</span>
-          </button>
-          <div className="w-px h-8 bg-zinc-200" />
-          <button 
-             onClick={() => setView('weekly')}
-             className={`flex flex-col items-center space-y-1.5 transition-colors ${view === 'weekly' ? 'text-black' : 'text-zinc-400 hover:text-zinc-600'}`}
-          >
-              <svg className="w-6 h-6" fill={view === 'weekly' ? "currentColor" : "none"} stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
-              <span className="text-[10px] font-bold uppercase tracking-wider">{t('nav.weekly')}</span>
-          </button>
-      </nav>
     </div>
   );
 };
