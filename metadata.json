@@ -1,0 +1,5 @@
+{
+  "name": "Daily Knowledge",
+  "description": "A desktop-grade knowledge assistant that aggregates, classifies, and summarizes daily news into 6 key insights using Gemini AI.",
+  "requestFramePermissions": []
+}
